@@ -18,11 +18,14 @@ public class EvilHangmanGame implements IEvilHangmanGame {
 
     @Override
     public void startGame(File dictionary, int wordLength) throws IOException, EmptyDictionaryException {
+        this.dictionary.clear();
+        wordSet = this.dictionary;
+        usedLetters.clear();
         Scanner scanner = new Scanner(dictionary);
         while (scanner.hasNext()) {
             String word = scanner.next();
             if (word.length() == wordLength) {
-                this.dictionary.add(word);
+                this.dictionary.add(word.toLowerCase());
             }
         }
         word = "";
@@ -77,41 +80,33 @@ public class EvilHangmanGame implements IEvilHangmanGame {
 
     @Override
     public Set<String> makeGuess(char guess) throws GuessAlreadyMadeException {
-        if (usedLetters.contains(guess)) {
+        char guessLower = Character.toString(guess).toLowerCase().charAt(0);
+        if (usedLetters.contains(guessLower)) {
             throw new GuessAlreadyMadeException();
         }
-        usedLetters.add(guess);
+        usedLetters.add(guessLower);
 
-        HashMap<String, Set<String>> map = getMap(guess);
-        int biggestSetLength = 0;
-        String biggestSetPattern = "";
-        Set<String> biggestSet = new HashSet<>();
-        for (String pattern : map.keySet()) {
-            Set<String> set = map.get(pattern);
-            if (set.size() > biggestSetLength) {
-                biggestSetLength = set.size();
-                biggestSetPattern = pattern;
-                biggestSet = set;
-                // TODO: resolve when more than one set with biggest size
-            }
-        }
-        word = biggestSetPattern;
-        wordSet = biggestSet;
+        HashMap<String, Set<String>> map = getMap(guessLower);
+        word = evilAlgorithm(map);
+        wordSet = map.get(word);
         int numCorrect = 0;
-        for (int i = 0; i < biggestSetPattern.length(); i++) {
-            if (biggestSetPattern.charAt(i) == guess) {
+        for (int i = 0; i < word.length(); i++) {
+            if (word.charAt(i) == guessLower) {
                 numCorrect++;
             }
         }
         if (numCorrect == 0) {
-            System.out.println("Sorry, there are no " + guess + "'s");
+            System.out.println("Sorry, there are no " + guessLower + "'s");
         } else if (numCorrect == 1) {
-            System.out.println("Yes, there is 1 " + guess);
+            System.out.println("Yes, there is 1 " + guessLower);
         } else {
-            System.out.println("Yes, there are " + numCorrect + " " + guess + "'s");
+            System.out.println("Yes, there are " + numCorrect + " " + guessLower + "'s");
+        }
+        for (String word : wordSet) {
+            System.out.println(word);
         }
 
-        return biggestSet;
+        return wordSet;
     }
 
     private HashMap<String, Set<String>> getMap(char guess) {
@@ -137,6 +132,59 @@ public class EvilHangmanGame implements IEvilHangmanGame {
         return map;
     }
 
+    /**
+     * >:)
+     */
+    private String evilAlgorithm(HashMap<String, Set<String>> map) {
+        int biggestSetLength = 0;
+        String biggestSetPattern = null;
+        HashMap<String, Set<String>> biggestSets = new HashMap<>();
+        for (String pattern : map.keySet()) {
+            Set<String> set = map.get(pattern);
+            if (set.size() > biggestSetLength) {
+                biggestSets.clear();
+                biggestSets.put(pattern, set);
+                biggestSetLength = set.size();
+                biggestSetPattern = pattern;
+            } else if (set.size() == biggestSetLength) {
+                biggestSets.put(pattern, set);
+                //biggestSetPattern = null;
+            }
+        }
+
+        if (biggestSets.size() == 1) {
+            return biggestSetPattern;
+        }
+        // 1.
+        for (String pattern: biggestSets.keySet()) {
+            if (Objects.equals(pattern, word)) {
+                return word;
+            }
+        }
+
+        // 2.
+        String sparsestPattern = null;
+        int fewestLetters = word.length();
+        HashMap<String, Set<String>> sparsestPatternSets = new HashMap<>();
+        for (String pattern: biggestSets.keySet()) {
+            int strippedWordLength = pattern.replace("-", "").length();
+            if (strippedWordLength < fewestLetters) {
+                sparsestPattern = pattern;
+                sparsestPatternSets.clear();
+                sparsestPatternSets.put(pattern, biggestSets.get(pattern));
+                fewestLetters = strippedWordLength;
+            } else if (strippedWordLength == fewestLetters) {
+                sparsestPatternSets.put(pattern, biggestSets.get(pattern));
+            }
+        }
+        if (sparsestPatternSets.size() == 1) {
+            return sparsestPattern;
+        }
+
+        // 3.
+        return biggestSetPattern;
+    }
+
     @Override
     public SortedSet<Character> getGuessedLetters() {
         return usedLetters;
@@ -148,5 +196,17 @@ public class EvilHangmanGame implements IEvilHangmanGame {
 
     public int getNumGuessedCharacters() {
         return (word.replace("-", "").length());
+    }
+
+    public String getEndingWord() {
+        if (getHasWonGame()) {
+            return word;
+        } else {
+            for (String word : wordSet) {
+                return word;
+            }
+        }
+
+        return null;
     }
 }

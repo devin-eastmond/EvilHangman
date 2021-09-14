@@ -31,11 +31,12 @@ public class EvilHangman {
                     guesses--;
                 }
                 if (game.getHasWonGame()) {
-                    System.out.println("You win!");
+                    System.out.println("You win! You guessed the word: " + game.getEndingWord());
                     break;
                 }
                 if (guesses == 0) {
                     System.out.println("You loose!");
+                    System.out.println("The word was: " + game.getEndingWord());
                 } else {
                     System.out.println("");
                 }
