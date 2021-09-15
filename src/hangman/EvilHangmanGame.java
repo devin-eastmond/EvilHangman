@@ -87,7 +87,7 @@ public class EvilHangmanGame implements IEvilHangmanGame {
         usedLetters.add(guessLower);
 
         HashMap<String, Set<String>> map = getMap(guessLower);
-        word = evilAlgorithm(map);
+        word = evilAlgorithm(map, guess);
         wordSet = map.get(word);
         int numCorrect = 0;
         for (int i = 0; i < word.length(); i++) {
@@ -101,9 +101,6 @@ public class EvilHangmanGame implements IEvilHangmanGame {
             System.out.println("Yes, there is 1 " + guessLower);
         } else {
             System.out.println("Yes, there are " + numCorrect + " " + guessLower + "'s");
-        }
-        for (String word : wordSet) {
-            System.out.println(word);
         }
 
         return wordSet;
@@ -135,7 +132,7 @@ public class EvilHangmanGame implements IEvilHangmanGame {
     /**
      * >:)
      */
-    private String evilAlgorithm(HashMap<String, Set<String>> map) {
+    private String evilAlgorithm(HashMap<String, Set<String>> map, char guess) {
         int biggestSetLength = 0;
         String biggestSetPattern = null;
         HashMap<String, Set<String>> biggestSets = new HashMap<>();
@@ -148,7 +145,6 @@ public class EvilHangmanGame implements IEvilHangmanGame {
                 biggestSetPattern = pattern;
             } else if (set.size() == biggestSetLength) {
                 biggestSets.put(pattern, set);
-                //biggestSetPattern = null;
             }
         }
 
@@ -182,6 +178,23 @@ public class EvilHangmanGame implements IEvilHangmanGame {
         }
 
         // 3.
+        HashMap<String, Set<String>> rightmostSets = new HashMap<>(sparsestPatternSets);
+        for (int i = 0; i < word.length(); i++) {
+            HashMap<String, Set<String>> previousSet = new HashMap<>(sparsestPatternSets);
+            for (String pattern: previousSet.keySet()) {
+                if (pattern.charAt(i) == guess) {
+                    rightmostSets.remove(pattern);
+                }
+            }
+            if (rightmostSets.size() == 1) {
+                for (String pattern : rightmostSets.keySet()) {
+                    return pattern;
+                }
+            } else if (rightmostSets.size() == 0) {
+                rightmostSets = previousSet;
+            }
+        }
+
         return biggestSetPattern;
     }
 
