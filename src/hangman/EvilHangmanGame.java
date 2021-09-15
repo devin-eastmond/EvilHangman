@@ -37,47 +37,6 @@ public class EvilHangmanGame implements IEvilHangmanGame {
         }
     }
 
-    public void getGuess(int guessesRemaining) {
-        printGuessInfo(guessesRemaining);
-
-        boolean validInput = false;
-        while (!validInput) {
-            System.out.print("Enter guess: ");
-            Scanner scanner = new Scanner(System.in);
-            String input = scanner.next();
-            try {
-                if (input.length() != 1) {
-                    throw new Exception("Invalid input!");
-                } else {
-                    char guess = input.toLowerCase().charAt(0);
-                    if (!Character.isLetter(guess)) {
-                        throw new Exception("Invalid input!");
-                    }
-                    makeGuess(guess);
-                    validInput = true;
-                }
-            } catch (Exception e) {
-                System.out.print(e.getMessage() + " ");
-            }
-        }
-    }
-
-    private void printGuessInfo(int guessesRemaining) {
-        if (guessesRemaining > 1) {
-            System.out.println("You have " + guessesRemaining + " guesses left");
-        } else {
-            System.out.println("You have " + guessesRemaining + " guess left");
-        }
-
-        System.out.print("Used letters: ");
-        for (Character usedLetter : usedLetters) {
-            System.out.print(usedLetter.toString() + ' ');
-        }
-        System.out.print('\n');
-
-        System.out.println("Word: " + word);
-    }
-
     @Override
     public Set<String> makeGuess(char guess) throws GuessAlreadyMadeException {
         char guessLower = Character.toString(guess).toLowerCase().charAt(0);
@@ -221,5 +180,13 @@ public class EvilHangmanGame implements IEvilHangmanGame {
         }
 
         return null;
+    }
+
+    public String getWord() {
+        return word;
+    }
+
+    public Set<String> getWordSet() {
+        return wordSet;
     }
 }
